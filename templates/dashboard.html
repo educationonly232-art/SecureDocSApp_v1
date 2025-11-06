@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Balgopal • Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #d4af37;
+            --brown: #8b4513;
+            --light-gold: #f9e6a0;
+            --card-bg: rgba(255, 255, 255, 0.97);
+            --bg: linear-gradient(135deg, #fdf6e3 0%, #f5e6cc 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 90px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+            box-shadow: 0 8px 32px rgba(139, 69, 19, 0.1);
+        }
+
+        .logo-container {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 50%;
+            padding: 8px;
+            border: 4px solid var(--gold);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 12px 35px rgba(139, 69, 19, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(139, 69, 19, 0.18);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #b8860b);
+            border: none;
+            color: white;
+            border-radius: 18px;
+            padding: 0.8rem 2rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
+        }
+
+        .form-control {
+            background: #fdf6e3;
+            border: none;
+            height: 58px;
+            border-radius: 16px;
+            font-size: 1.05rem;
+        }
+
+        .form-control:focus {
+            background: white;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+        }
+
+        .input-group {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.1);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--brown);
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            opacity: 0.5;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        /* Fix for long filenames */
+        .card-body h6 {
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .tooltip-inner {
+            max-width: 350px;
+            text-align: left;
+            font-size: 0.9rem;
+            background-color: var(--brown);
+        }
+
+        /* 🚀 NEW STYLES FOR INSTANT DROP-DOWN EFFECT with Animation 🚀 */
+        
+        /* This container now manages the positioning of the dropdown */
+        #searchWrapper {
+            position: relative;
+        }
+        
+        /* Repositioned: top: 100% now sits right under the element's natural flow */
+        #instantSearchResults {
+            position: absolute;
+            top: 100%; 
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.25);
+            max-height: 400px; 
+            overflow-y: auto; 
+            padding: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            
+            /* Animation Properties */
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            pointer-events: none;
+        }
+        
+        #instantSearchResults.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .search-suggestion-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .search-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-suggestion-item:hover {
+            background-color: var(--light-gold);
+        }
+        
+        .search-suggestion-item i {
+            margin-right: 10px;
+            color: var(--gold);
+        }
+        
+        .search-suggestion-item .doc-name {
+            font-weight: 600;
+            color: var(--brown);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+        
+        .search-suggestion-item .doc-purpose {
+            font-size: 0.8rem;
+            color: #777;
+            margin-left: 15px;
+        }
+        
+        #documentsCard.hide-on-search {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+            <div class="logo-container me-3">
+                <img src="{{ url_for('static', filename='balgopal-logo.png') }}" alt="Balgopal">
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold" style="color: var(--brown);">Balgopal</h5>
+                <small class="text-muted fw-medium">Director Portal</small>
+            </div>
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-4">
+            <span class="text-muted fw-medium">Welcome, <strong>{{ user.username }}</strong></span>
+            <div class="dropdown">
+                <a class="text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle fs-2" style="color: var(--gold);"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger fw-medium" href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card text-center p-5">
+                <i class="bi bi-file-earmark-text fs-1" style="color: var(--gold);"></i>
+                <h2 class="mt-3 mb-0 fw-bold" style="color: var(--brown);">{{ documents|length }}</h2>
+                <p class="text-muted mt-2">Total Documents</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center p-5">
+                <i class="bi bi-clock-history fs-1" style="color: var(--gold);"></i>
+                <h2 class="mt-3 mb-0 fw-bold" style="color: var(--brown);">0</h2>
+                <p class="text-muted mt-2">Pending Review</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+             <div id="searchWrapper" class="card">
+                 <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3" style="color: var(--brown);">Quick Search</h6>
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search documents..." autocomplete="off">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div id="instantSearchResults">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-5">
+        <div class="card-body p-5">
+            <h4 class="fw-bold mb-4" style="color: var(--brown);">
+                {% if edit_doc %}Edit Document{% else %}Upload New Document{% endif %}
+            </h4>
+            <form method="post" action="{% if edit_doc %}{{ url_for('edit', doc_id=edit_doc.id) }}{% else %}{{ url_for('upload') }}{% endif %}" enctype="multipart/form-data">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <input type="text" name="name" class="form-control form-control-lg" placeholder="Document Name" value="{% if edit_doc %}{{ edit_doc.name }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="purpose" class="form-control form-control-lg" placeholder="Purpose" value="{% if edit_doc %}{{ edit_doc.purpose }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="date" name="date_signed" class="form-control form-control-lg" value="{% if edit_doc %}{{ edit_doc.date_signed }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="file" name="file" class="form-control form-control-lg" accept=".pdf,.doc,.docx" {% if not edit_doc %}required{% endif %}>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <button type="submit" class="btn btn-gold px-5 py-3">
+                        {% if edit_doc %}Update Document{% else %}Upload Document{% endif %}
+                    </button>
+                    {% if edit_doc %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary px-5 py-3 ms-3">Cancel</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" id="documentsCard">
+        <div class="card-header bg-transparent border-0 py-4">
+            <h4 class="mb-0 fw-bold" style="color: var(--brown);">Your Documents ({{ documents|length }})</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4" id="documentsGrid">
+                {% for doc in documents %}
+                <div class="col-md-6 col-lg-4 document-item" data-name="{{ doc.name|lower }}" data-purpose="{{ doc.purpose|lower }}" data-view-url="{{ url_for('view', filename=doc.filename) }}" data-edit-url="{{ url_for('edit', doc_id=doc.id) }}" data-delete-url="{{ url_for('delete', doc_id=doc.id) }}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="fw-bold" data-bs-toggle="tooltip" data-bs-title="{{ doc.name }}">{{ doc.name }}</h6>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('view', filename=doc.filename) }}" class="btn btn-sm btn-outline-info" target="_blank">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('edit', doc_id=doc.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ url_for('delete', doc_id=doc.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <p class="text-muted small">{{ doc.purpose }}</p>
+                            <p class="text-muted small"><i class="bi bi-calendar"></i> {{ doc.date_signed }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not documents %}
+                <div class="col-12 no-results">
+                    <i class="bi bi-file-earmark-plus"></i>
+                    <p>No documents yet. Upload your first one!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="toast align-items-center text-bg-{{ 'danger' if category == 'error' else 'success' }} border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">{{ message }}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+    {% endfor %}
+    {% endwith %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const initializeTooltips = (selector = '[data-bs-toggle="tooltip"]') => {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll(selector));
+        
+        tooltipTriggerList.forEach(el => {
+             const tooltip = bootstrap.Tooltip.getInstance(el);
+             if (tooltip) {
+                 tooltip.dispose(); 
+             }
+        });
+        
+        tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+    };
+
+    document.querySelectorAll('.toast').forEach(t => new bootstrap.Toast(t, { delay: 5000 }).show());
+    initializeTooltips(); 
+
+    const searchInput = document.getElementById('searchInput');
+    const documentsCard = document.getElementById('documentsCard');
+    const instantSearchResults = document.getElementById('instantSearchResults');
+    const searchWrapper = document.getElementById('searchWrapper');
+    
+    const allDocuments = [].map.call(document.querySelectorAll('.document-item'), item => ({
+        name: item.dataset.name,
+        purpose: item.dataset.purpose,
+        viewUrl: item.dataset.viewUrl,
+        editUrl: item.dataset.editUrl,
+        deleteUrl: item.dataset.deleteUrl,
+        element: item
+    }));
+    
+    const toggleMainGrid = (isSearching) => {
+        documentsCard.style.display = isSearching ? 'none' : 'block';
+    };
+    
+    // --- Core Search Functionality ---
+    const filterDocuments = () => {
+        const query = searchInput.value.toLowerCase().trim();
+        const isSearching = query.length > 0;
+        let html = '';
+
+        if (isSearching) {
+            const matchedDocs = allDocuments.filter(doc => 
+                doc.name.includes(query) || doc.purpose.includes(query)
+            );
+            
+            if (matchedDocs.length > 0) {
+                matchedDocs.forEach(doc => {
+                    html += `
+                        <a href="${doc.viewUrl}" class="search-suggestion-item" target="_blank" data-bs-toggle="tooltip" data-bs-title="${doc.name}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span class="doc-name">${doc.name}</span>
+                            <span class="doc-purpose">${doc.purpose}</span>
+                        </a>
+                    `;
+                });
+            } else {
+                html = `
+                    <div class="search-suggestion-item text-center text-muted">
+                        No documents found for "${query}".
+                    </div>
+                `;
+            }
+
+            instantSearchResults.innerHTML = html;
+            instantSearchResults.classList.add('show');
+            toggleMainGrid(true);
+            
+            initializeTooltips('.search-suggestion-item [data-bs-toggle="tooltip"]');
+
+        } else {
+            // No search query: Hide suggestions, show main grid
+            instantSearchResults.classList.remove('show');
+            setTimeout(() => {
+                instantSearchResults.innerHTML = '';
+            }, 300);
+            
+            toggleMainGrid(false);
+        }
+    };
+    // --- End Core Search Functionality ---
+    
+    searchInput.addEventListener('input', () => {
+        window.requestAnimationFrame(filterDocuments);
+    });
+
+    // 🔥 FIX: Automatically clear search and show main grid when clicking outside
+    document.addEventListener('click', (e) => {
+        // Check if the click is outside the searchWrapper (the entire card containing the search)
+        if (!searchWrapper.contains(e.target)) {
+            // Only act if there is text in the search bar
+            if (searchInput.value.trim().length > 0) {
+                 searchInput.value = ''; // Clear the input
+                 
+                 // Manually trigger the hiding logic without input event
+                 instantSearchResults.classList.remove('show');
+                 setTimeout(() => {
+                    instantSearchResults.innerHTML = '';
+                 }, 300); 
+                 toggleMainGrid(false); // Show the main grid
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>

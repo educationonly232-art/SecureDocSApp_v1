@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Balgopal • Director Portal</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #d4af37;
+            --brown: #8b4513;
+            --light-gold: #f9e6a0;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf6e3 0%, #f5e6cc 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            box-shadow: 0 25px 60px rgba(139, 69, 19, 0.15),
+                        0 0 0 1px rgba(212, 175, 55, 0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 430px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--gold), #b8860b);
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-container {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 50%;
+            padding: 12px;
+            margin: 0 auto -75px;
+            box-shadow: 0 15px 35px rgba(139, 69, 19, 0.4);
+            border: 8px solid var(--gold);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-body {
+            padding: 6rem 2.5rem 2.5rem;
+            background: var(--card-bg);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--brown);
+            margin-bottom: 0.8rem;
+        }
+
+        .input-group {
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.12);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .input-group:focus-within {
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.35);
+            transform: translateY(-4px);
+        }
+
+        .form-control, .input-group-text {
+            border: none;
+            background: #fdf6e3;
+            height: 62px;
+            font-size: 1.1rem;
+        }
+
+        .form-control:focus {
+            background: white;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.25);
+        }
+
+        .input-group-text {
+            background: #f5e6cc;
+            color: var(--brown);
+            font-size: 1.3rem;
+        }
+
+        .btn-login {
+            height: 62px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--gold), #b8860b);
+            border: none;
+            color: white;
+            box-shadow: 0 12px 30px rgba(212, 175, 55, 0.5);
+            transition: all 0.4s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(212, 175, 55, 0.6);
+        }
+
+        .footer-text {
+            color: var(--brown);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="card-header">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='balgopal-logo.png') }}" alt="Balgopal Logo">
+        </div>
+    </div>
+
+    <div class="card-body">
+        <h3 class="text-center mb-4" style="color: var(--brown); font-weight: 800;">
+            Director Portal
+        </h3>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category in ['error','danger'] else 'success' }} alert-dismissible fade show rounded-4 mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}" novalidate>
+            {{ form.csrf_token if form else '' }}
+
+            <div class="mb-4">
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-person"></i>
+                    </span>
+                    {% if form %}
+                        {{ form.username(class="form-control", placeholder="Enter username", autocomplete="username", required=True) }}
+                    {% else %}
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" autocomplete="username" required>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    {% if form %}
+                        {{ form.password(class="form-control", placeholder="Enter password", autocomplete="current-password", required=True) }}
+                    {% else %}
+                        <input type="password" name="password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-login w-100">
+                Access Portal
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="footer-text mb-0">
+                Powered by <span style="color: var(--gold); font-weight: 800;">Balgopal</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
