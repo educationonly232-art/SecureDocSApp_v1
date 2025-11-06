@@ -1,5 +1,5 @@
-# app.py
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory, abort
+# app.py (Final Version for Render Deployment)
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -7,16 +7,28 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-# Change this secret in production (use env var)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'supersecretkey')
+# ----------------------------------------------------------------------
+# CONFIGURATION (HARDCODED FOR RENDER DEPLOYMENT)
+# ----------------------------------------------------------------------
 
+# 1. Secret Key (Hardcoded)
+app.secret_key = '7T3u0G2f4Q8h1R6y9K5n2M1s8V9w0X4a3C'
+
+# 2. Database URI (HARDCODED - Uses your Internal Render URL)
+DATABASE_URL_HARDCODED = 'postgresql://balgopal_db_user:gjQdSZ8nbHDkAOyGYv5Mw7xvTsl5RccA@dpg-d466fvje5dus73cifcl0-a/balgopal_db'
+
+# Fix for SQLAlchemy connection scheme
+if DATABASE_URL_HARDCODED.startswith("postgres://"):
+    DATABASE_URL_HARDCODED = DATABASE_URL_HARDCODED.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL_HARDCODED
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 3. File Uploads Configuration (Files will be TEMPORARY on Render Free Tier!)
 basedir = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# limit uploads to 10MB
-app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024 
 
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
@@ -24,7 +36,7 @@ db = SQLAlchemy(app)
 
 
 # ----------------------------------------------------------------------
-# DATABASE MODELS
+# DATABASE MODELS, HELPERS, AND INITIALIZATION
 # ----------------------------------------------------------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,9 +54,6 @@ class Document(db.Model):
     user = db.relationship('User', backref=db.backref('documents', lazy=True))
 
 
-# ----------------------------------------------------------------------
-# HELPERS
-# ----------------------------------------------------------------------
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -60,9 +69,6 @@ def unique_filename(folder, filename):
     return candidate
 
 
-# ----------------------------------------------------------------------
-# AUTO-CREATE DB, DEFAULT USER & UPLOADS FOLDER
-# ----------------------------------------------------------------------
 with app.app_context():
     db.create_all()
     if User.query.count() == 0:
@@ -131,7 +137,6 @@ def dashboard():
 
     user = User.query.get(session['user_id'])
     if user is None:
-        # user record removed or invalid session — clear and redirect to login
         session.clear()
         flash('Session invalid. Please login again.', 'danger')
         return redirect(url_for('login'))
@@ -161,7 +166,7 @@ def upload():
         flash('Invalid file type. Only PDF, DOC, DOCX allowed.', 'danger')
         return redirect(url_for('dashboard'))
 
-    # Save file with unique name
+    # Save file with unique name (TEMPORARY on Render Free Tier!)
     filename = unique_filename(app.config['UPLOAD_FOLDER'], file.filename)
     save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(save_path)
@@ -197,7 +202,7 @@ def upload():
                    user_id=session['user_id'])
     db.session.add(doc)
     db.session.commit()
-    flash('Document uploaded successfully', 'success')
+    flash('Document uploaded successfully (Warning: File is temporary)', 'warning')
     return redirect(url_for('dashboard'))
 
 
@@ -281,7 +286,7 @@ def delete(doc_id):
         return redirect(url_for('login'))
 
     doc = Document.query.get_or_404(doc_id)
-    # ensure only owner (optional) - currently not enforcing ownership; add if needed
+    
     path = os.path.join(app.config['UPLOAD_FOLDER'], doc.filename)
     try:
         if os.path.exists(path):
@@ -299,16 +304,14 @@ def delete(doc_id):
 def view(filename):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    # protect against path traversal by using the upload folder and secure_filename when necessary
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-# Generic error handler for file too large
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    flash('File too large. Maximum allowed size is 1024MB.', 'danger')
+    flash('File too large. Maximum allowed size is 1GB.', 'danger')
     return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
